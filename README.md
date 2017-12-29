@@ -67,30 +67,22 @@ cd CycleGAN-tensorflow
 ```
 ./download_sim2real_dataset.sh
 ```
-- Train a model:
-```bash
-CUDA_VISIBLE_DEVICES=0 python main.py --dataset_dir=horse2zebra
-```
 - Train with **sim2real** dataset:
-    ```
-    CUDA_VISIBLE_DEVICES=0 python main.py --dataset_dir sim2real \
-                                          --load_size 240 --fine_size 128 \
-                                          --train_size 3000
-    ```
+```
+CUDA_VISIBLE_DEVICES=0 python main.py --dataset_dir sim2real \
+                                      --load_size 240 --fine_size 128 \
+                                      --train_size 3000
+```
 - Use tensorboard to visualize the training details:
 ```bash
 tensorboard --logdir=./logs
 ```
 
 ### Test
-- Finally, test the model:
+- Test the trained model with **sim2real** dataset:
 ```bash
-CUDA_VISIBLE_DEVICES=0 python main.py --dataset_dir=horse2zebra --phase=test --which_direction=AtoB
+CUDA_VISIBLE_DEVICES=0 python main.py --dataset_dir sim2real --phase=test --which_direction=AtoB
 ```
-- with **sim2real** dataset:
-    ```bash
-    CUDA_VISIBLE_DEVICES=0 python main.py --dataset_dir sim2real --phase=test --which_direction=AtoB
-    ```
 
 ## Training and Test Details
 To train a model,  
