@@ -54,19 +54,29 @@ and extract the rar file to `./checkpoint/`.
 - Install tensorflow from https://github.com/tensorflow/tensorflow
 - Clone this repo:
 ```bash
-git clone https://github.com/xhujoy/CycleGAN-tensorflow
+git clone https://github.com/towardthesea/CycleGAN-tensorflow
 cd CycleGAN-tensorflow
 ```
 
 ### Train
 - Download a dataset (e.g. zebra and horse images from ImageNet):
 ```bash
-bash ./download_dataset.sh horse2zebra
+./download_dataset.sh horse2zebra
+```
+- Download [**sim2real**](https://zenodo.org/record/1133474/files/sim2real.tar.gz) dataset (24k images in total):
+```
+./download_sim2real_dataset.sh
 ```
 - Train a model:
 ```bash
 CUDA_VISIBLE_DEVICES=0 python main.py --dataset_dir=horse2zebra
 ```
+- Train with **sim2real** dataset:
+    ```
+    CUDA_VISIBLE_DEVICES=0 python main.py --dataset_dir sim2real \
+                                          --load_size 240 --fine_size 128 \
+                                          --train_size 3000
+    ```
 - Use tensorboard to visualize the training details:
 ```bash
 tensorboard --logdir=./logs
@@ -77,6 +87,10 @@ tensorboard --logdir=./logs
 ```bash
 CUDA_VISIBLE_DEVICES=0 python main.py --dataset_dir=horse2zebra --phase=test --which_direction=AtoB
 ```
+- with **sim2real** dataset:
+    ```bash
+    CUDA_VISIBLE_DEVICES=0 python main.py --dataset_dir sim2real --phase=test --which_direction=AtoB
+    ```
 
 ## Training and Test Details
 To train a model,  
