@@ -31,11 +31,12 @@ class cyclegan(object):
             self.criterionGAN = sce_criterion
 
         OPTIONS = namedtuple('OPTIONS', 'batch_size image_size \
-                              gf_dim df_dim output_c_dim is_training')
+                              gf_dim df_dim output_c_dim is_training nb_layers')
         self.options = OPTIONS._make((args.batch_size, args.fine_size,
                                       args.ngf, args.ndf, args.output_nc,
-                                      args.phase == 'train'))
-
+                                      args.phase == 'train',
+                                      args.nb_layers))
+        print('options: ', self.options)
         self._build_model()
         self.saver = tf.train.Saver()
         self.pool = ImagePool(args.max_size)

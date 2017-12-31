@@ -122,11 +122,15 @@ def generator_resnet(image, options, reuse=False, name="generator"):
         r4 = residule_block(r3, options.gf_dim*4, name='g_r4')
         r5 = residule_block(r4, options.gf_dim*4, name='g_r5')
         r6 = residule_block(r5, options.gf_dim*4, name='g_r6')
-        r7 = residule_block(r6, options.gf_dim*4, name='g_r7')
-        r8 = residule_block(r7, options.gf_dim*4, name='g_r8')
-        r9 = residule_block(r8, options.gf_dim*4, name='g_r9')
+        if options.nb_layers == 6:
+            d1 = deconv2d(r6, options.gf_dim * 2, 3, 2, name='g_d1_dc')
+        else:
+            r7 = residule_block(r6, options.gf_dim*4, name='g_r7')
+            r8 = residule_block(r7, options.gf_dim*4, name='g_r8')
+            r9 = residule_block(r8, options.gf_dim*4, name='g_r9')
 
-        d1 = deconv2d(r9, options.gf_dim*2, 3, 2, name='g_d1_dc')
+            d1 = deconv2d(r9, options.gf_dim*2, 3, 2, name='g_d1_dc')
+
         d1 = tf.nn.relu(instance_norm(d1, 'g_d1_bn'))
         d2 = deconv2d(d1, options.gf_dim, 3, 2, name='g_d2_dc')
         d2 = tf.nn.relu(instance_norm(d2, 'g_d2_bn'))
