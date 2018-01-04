@@ -55,9 +55,9 @@ def load_train_data(image_path, load_size=286, fine_size=256, is_testing=False):
         img_A = img_A[h1:h1+fine_size, w1:w1+fine_size]
         img_B = img_B[h1:h1+fine_size, w1:w1+fine_size]
 
-        if np.random.random() > 0.5:
-            img_A = np.fliplr(img_A)
-            img_B = np.fliplr(img_B)
+        # if np.random.random() > 0.5:
+        #     img_A = np.fliplr(img_A)
+        #     img_B = np.fliplr(img_B)
     else:
         img_A = scipy.misc.imresize(img_A, [fine_size, fine_size])
         img_B = scipy.misc.imresize(img_B, [fine_size, fine_size])
