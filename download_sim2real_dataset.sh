@@ -8,5 +8,5 @@ TARGET_DIR=./datasets/$FILE/
 wget -N $URL -O $ZIP_FILE
 #mkdir $TARGET_DIR
 #unzip $ZIP_FILE -d ./datasets/
-tar -xvzf $ZIP_FILE -C ./datasets/
+tar -xvzf $ZIP_FILE -C $TARGET_DIR
 rm $ZIP_FILE
