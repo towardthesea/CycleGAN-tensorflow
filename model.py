@@ -49,7 +49,7 @@ class cyclegan(object):
 
         self.mask_A = tf.placeholder(tf.float32,
                                      [None, self.image_size, self.image_size,
-                                     self.input_c_dim], name='mask_A')
+                                      self.input_c_dim], name='mask_A')
 
         self.real_A = self.real_data[:, :, :, :self.input_c_dim]
         self.real_B = self.real_data[:, :, :, self.input_c_dim:self.input_c_dim + self.output_c_dim]
@@ -62,14 +62,17 @@ class cyclegan(object):
         self.DB_fake = self.discriminator(self.fake_B, self.options, reuse=False, name="discriminatorB")
         self.DA_fake = self.discriminator(self.fake_A, self.options, reuse=False, name="discriminatorA")
         self.g_loss_a2b = self.criterionGAN(self.DB_fake, tf.ones_like(self.DB_fake)) \
-            + self.L1_lambda * tf.multiply(self.mask_A, abs_criterion(self.real_A, self.fake_A_)) \
+            + self.L1_lambda * abs_criterion(tf.multiply(self.mask_A, self.real_A),
+                                             tf.multiply(self.mask_A, self.fake_A_)) \
             + self.L1_lambda * abs_criterion(self.real_B, self.fake_B_)
         self.g_loss_b2a = self.criterionGAN(self.DA_fake, tf.ones_like(self.DA_fake)) \
-            + self.L1_lambda * tf.multiply(self.mask_A, abs_criterion(self.real_A, self.fake_A_)) \
+            + self.L1_lambda * abs_criterion(tf.multiply(self.mask_A, self.real_A),
+                                             tf.multiply(self.mask_A, self.fake_A_)) \
             + self.L1_lambda * abs_criterion(self.real_B, self.fake_B_)
         self.g_loss = self.criterionGAN(self.DA_fake, tf.ones_like(self.DA_fake)) \
             + self.criterionGAN(self.DB_fake, tf.ones_like(self.DB_fake)) \
-            + self.L1_lambda * tf.multiply(self.mask_A, abs_criterion(self.real_A, self.fake_A_)) \
+            + self.L1_lambda * abs_criterion(tf.multiply(self.mask_A, self.real_A),
+                                             tf.multiply(self.mask_A, self.fake_A_)) \
             + self.L1_lambda * abs_criterion(self.real_B, self.fake_B_)
 
         self.fake_A_sample = tf.placeholder(tf.float32,
@@ -162,15 +165,21 @@ class cyclegan(object):
                 batch_images = [load_train_data(batch_file, args.load_size, args.fine_size) for batch_file in batch_files]
                 batch_images = np.array(batch_images).astype(np.float32)
 
-                batch_mask_files = zip(maskA[idx * self.batch_size:(idx + 1) * self.batch_size])
-                batch_masks = [load_mask_data(batch_mask_file, args.load_size, args.fine_size) for batch_mask_file in batch_mask_files]
+                print('batch_images shape', batch_images.shape)
+
+                batch_mask_files = list(zip(maskA[idx * self.batch_size:(idx + 1) * self.batch_size]))
+                batch_masks = [load_mask_data(batch_mask_file, args.load_size, args.fine_size)
+                               for batch_mask_file in batch_mask_files]
                 batch_masks = np.array(batch_masks).astype(np.float32)
+
+                print('batch_masks shape', batch_masks.shape)
 
                 # Update G network and record fake outputs
                 fake_A, fake_B, _, summary_str = self.sess.run(
                     [self.fake_A, self.fake_B, self.g_optim, self.g_sum],
-                    feed_dict={self.real_data: batch_images, self.lr: lr,
-                               self.mask_A: batch_masks})
+                    feed_dict={self.real_data: batch_images,
+                               self.mask_A: batch_masks,
+                               self.lr: lr})
                 self.writer.add_summary(summary_str, counter)
                 [fake_A, fake_B] = self.pool([fake_A, fake_B])
 
