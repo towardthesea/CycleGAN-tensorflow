@@ -165,14 +165,10 @@ class cyclegan(object):
                 batch_images = [load_train_data(batch_file, args.load_size, args.fine_size) for batch_file in batch_files]
                 batch_images = np.array(batch_images).astype(np.float32)
 
-                print('batch_images shape', batch_images.shape)
-
                 batch_mask_files = list(zip(maskA[idx * self.batch_size:(idx + 1) * self.batch_size]))
                 batch_masks = [load_mask_data(batch_mask_file, args.load_size, args.fine_size)
                                for batch_mask_file in batch_mask_files]
                 batch_masks = np.array(batch_masks).astype(np.float32)
-
-                print('batch_masks shape', batch_masks.shape)
 
                 # Update G network and record fake outputs
                 fake_A, fake_B, _, summary_str = self.sess.run(
