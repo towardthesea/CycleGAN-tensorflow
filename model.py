@@ -148,9 +148,9 @@ class cyclegan(object):
                 print(" [!] Load failed...")
 
         for epoch in range(args.epoch):
-            dataA = glob('./datasets/{}/*.*'.format(self.dataset_dir + '/trainA'))
-            dataB = glob('./datasets/{}/*.*'.format(self.dataset_dir + '/trainB'))
-            maskA = glob('./datasets/{}/*.*'.format(self.dataset_dir + '/trainA_mask'))
+            dataA = sorted(glob('./datasets/{}/*.*'.format(self.dataset_dir + '/trainA')))
+            dataB = sorted(glob('./datasets/{}/*.*'.format(self.dataset_dir + '/trainB')))
+            maskA = sorted(glob('./datasets/{}/*.*'.format(self.dataset_dir + '/trainA_mask')))
             combined = list(zip(dataA, maskA))
             np.random.shuffle(combined)
             dataA[:], maskA[:] = zip(*combined)
@@ -226,8 +226,8 @@ class cyclegan(object):
             return False
 
     def sample_model(self, sample_dir, epoch, idx, args):
-        dataA = glob('./datasets/{}/*.*'.format(self.dataset_dir + '/testA'))
-        dataB = glob('./datasets/{}/*.*'.format(self.dataset_dir + '/testB'))
+        dataA = sorted(glob('./datasets/{}/*.*'.format(self.dataset_dir + '/testA')))
+        dataB = sorted(glob('./datasets/{}/*.*'.format(self.dataset_dir + '/testB')))
         np.random.shuffle(dataA)
         np.random.shuffle(dataB)
         batch_files = list(zip(dataA[:self.batch_size], dataB[:self.batch_size]))
