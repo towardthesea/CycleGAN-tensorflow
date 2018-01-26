@@ -85,7 +85,7 @@ def load_mask_data(image_path, load_size=286, fine_size=256, is_testing=False):
         img_A = scipy.misc.imresize(img_A, [fine_size, fine_size])
 
     # img_AB shape: (fine_size, fine_size, input_c_dim + output_c_dim)
-    return img_A
+    return img_A/255.
 
 # -----------------------------
 
