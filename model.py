@@ -82,7 +82,8 @@ class cyclegan(object):
                                             [None, self.image_size, self.image_size,
                                              self.output_c_dim], name='fake_B_sample')
         self.DB_real = self.discriminator(self.real_B, self.options, reuse=True, name="discriminatorB")
-        self.DA_real = self.discriminator(self.real_A, self.options, reuse=True, name="discriminatorA")
+        self.DA_real = self.discriminator(tf.multiply(self.mask_A, self.real_A),
+                                          self.options, reuse=True, name="discriminatorA")
         self.DB_fake_sample = self.discriminator(self.fake_B_sample, self.options, reuse=True, name="discriminatorB")
         self.DA_fake_sample = self.discriminator(self.fake_A_sample, self.options, reuse=True, name="discriminatorA")
 
