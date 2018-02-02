@@ -62,17 +62,14 @@ class cyclegan(object):
         self.DB_fake = self.discriminator(self.fake_B, self.options, reuse=False, name="discriminatorB")
         self.DA_fake = self.discriminator(self.fake_A, self.options, reuse=False, name="discriminatorA")
         self.g_loss_a2b = self.criterionGAN(self.DB_fake, tf.ones_like(self.DB_fake)) \
-            + self.L1_lambda * abs_criterion(tf.multiply(self.mask_A, self.real_A),
-                                             tf.multiply(self.mask_A, self.cyc_A)) \
+            + self.L1_lambda * abs_criterion(self.real_A, self.cyc_A) \
             + self.L1_lambda * abs_criterion(self.real_B, self.cyc_B)
         self.g_loss_b2a = self.criterionGAN(self.DA_fake, tf.ones_like(self.DA_fake)) \
-            + self.L1_lambda * abs_criterion(tf.multiply(self.mask_A, self.real_A),
-                                             tf.multiply(self.mask_A, self.cyc_A)) \
+            + self.L1_lambda * abs_criterion(self.real_A, self.cyc_A) \
             + self.L1_lambda * abs_criterion(self.real_B, self.cyc_B)
         self.g_loss = self.criterionGAN(self.DA_fake, tf.ones_like(self.DA_fake)) \
             + self.criterionGAN(self.DB_fake, tf.ones_like(self.DB_fake)) \
-            + self.L1_lambda * abs_criterion(tf.multiply(self.mask_A, self.real_A),
-                                             tf.multiply(self.mask_A, self.cyc_A)) \
+            + self.L1_lambda * abs_criterion(self.real_A, self.cyc_A) \
             + self.L1_lambda * abs_criterion(self.real_B, self.cyc_B)
 
         self.fake_A_sample = tf.placeholder(tf.float32,
@@ -150,11 +147,11 @@ class cyclegan(object):
         for epoch in range(args.epoch):
             dataA = sorted(glob('./datasets/{}/*.*'.format(self.dataset_dir + '/trainA')))
             dataB = sorted(glob('./datasets/{}/*.*'.format(self.dataset_dir + '/trainB')))
-            maskA = sorted(glob('./datasets/{}/*.*'.format(self.dataset_dir + '/trainA_mask')))
-            combined = list(zip(dataA, maskA))
-            np.random.shuffle(combined)
-            dataA[:], maskA[:] = zip(*combined)
-            #np.random.shuffle(dataA)
+            # maskA = sorted(glob('./datasets/{}/*.*'.format(self.dataset_dir + '/trainA_mask')))
+            # combined = list(zip(dataA, maskA))
+            # np.random.shuffle(combined)
+            # dataA[:], maskA[:] = zip(*combined)
+            np.random.shuffle(dataA)
             np.random.shuffle(dataB)
             batch_idxs = min(min(len(dataA), len(dataB)), args.train_size) // self.batch_size
             lr = args.lr if epoch < args.epoch_step else args.lr*(args.epoch-epoch)/(args.epoch-args.epoch_step)
@@ -165,16 +162,16 @@ class cyclegan(object):
                 batch_images = [load_train_data(batch_file, args.load_size, args.fine_size, is_testing=True) for batch_file in batch_files]
                 batch_images = np.array(batch_images).astype(np.float32)
 
-                batch_mask_files = list(zip(maskA[idx * self.batch_size:(idx + 1) * self.batch_size]))
-                batch_masks = [load_mask_data(batch_mask_file, args.load_size, args.fine_size, is_testing=True)
-                               for batch_mask_file in batch_mask_files]
-                batch_masks = np.array(batch_masks).astype(np.float32)
+                # batch_mask_files = list(zip(maskA[idx * self.batch_size:(idx + 1) * self.batch_size]))
+                # batch_masks = [load_mask_data(batch_mask_file, args.load_size, args.fine_size, is_testing=True)
+                #                for batch_mask_file in batch_mask_files]
+                # batch_masks = np.array(batch_masks).astype(np.float32)
 
                 # Update G network and record fake outputs
                 fake_A, fake_B, _, summary_str = self.sess.run(
                     [self.fake_A, self.fake_B, self.g_optim, self.g_sum],
                     feed_dict={self.real_data: batch_images,
-                               self.mask_A: batch_masks,
+                               # self.mask_A: batch_masks,
                                self.lr: lr})
                 self.writer.add_summary(summary_str, counter)
                 [fake_A, fake_B] = self.pool([fake_A, fake_B])
@@ -183,7 +180,7 @@ class cyclegan(object):
                 _, summary_str = self.sess.run(
                     [self.d_optim, self.d_sum],
                     feed_dict={self.real_data: batch_images,
-                               self.mask_A: batch_masks,
+                               # self.mask_A: batch_masks,
                                self.fake_A_sample: fake_A,
                                self.fake_B_sample: fake_B,
                                self.lr: lr})
