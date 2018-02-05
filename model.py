@@ -61,16 +61,15 @@ class cyclegan(object):
 
         self.DB_fake = self.discriminator(self.fake_B, self.options, reuse=False, name="discriminatorB")
         self.DA_fake = self.discriminator(self.fake_A, self.options, reuse=False, name="discriminatorA")
-        self.g_loss_a2b = self.criterionGAN(self.DB_fake, tf.ones_like(self.DB_fake)) \
-            + self.L1_lambda * abs_criterion(self.real_A, self.cyc_A) \
-            + self.L1_lambda * abs_criterion(self.real_B, self.cyc_B)
-        self.g_loss_b2a = self.criterionGAN(self.DA_fake, tf.ones_like(self.DA_fake)) \
-            + self.L1_lambda * abs_criterion(self.real_A, self.cyc_A) \
-            + self.L1_lambda * abs_criterion(self.real_B, self.cyc_B)
+
+        cyc_loss = self.L1_lambda * abs_criterion(self.real_A, self.cyc_A) \
+                 + self.L1_lambda * abs_criterion(self.real_B, self.cyc_B)
+
+        self.g_loss_a2b = self.criterionGAN(self.DB_fake, tf.ones_like(self.DB_fake)) + cyc_loss
+        self.g_loss_b2a = self.criterionGAN(self.DA_fake, tf.ones_like(self.DA_fake)) + cyc_loss
         self.g_loss = self.criterionGAN(self.DA_fake, tf.ones_like(self.DA_fake)) \
-            + self.criterionGAN(self.DB_fake, tf.ones_like(self.DB_fake)) \
-            + self.L1_lambda * abs_criterion(self.real_A, self.cyc_A) \
-            + self.L1_lambda * abs_criterion(self.real_B, self.cyc_B)
+                    + self.criterionGAN(self.DB_fake, tf.ones_like(self.DB_fake)) \
+                    + cyc_loss
 
         self.fake_A_sample = tf.placeholder(tf.float32,
                                             [None, self.image_size, self.image_size,
@@ -121,15 +120,39 @@ class cyclegan(object):
         t_vars = tf.trainable_variables()
         self.d_vars = [var for var in t_vars if 'discriminator' in var.name]
         self.g_vars = [var for var in t_vars if 'generator' in var.name]
-        for var in t_vars: print(var.name)
+        # for var in t_vars: print(var.name)
+
+        self.dA_vars = [var for var in t_vars if 'discriminatorA' in var.name]
+        self.gA2B_vars = [var for var in t_vars if 'generatorA2B' in var.name]
+        self.dB_vars = [var for var in t_vars if 'discriminatorB' in var.name]
+        self.gB2A_vars = [var for var in t_vars if 'generatorB2A' in var.name]
+
+        print('dA_vars: ')
+        for var in self.dA_vars: print(var.name)
+        print('dB_vars: ')
+        for var in self.dB_vars: print(var.name)
+        print('gA2B_vars: ')
+        for var in self.gA2B_vars: print(var.name)
+        print('gB2A_vars: ')
+        for var in self.gB2A_vars: print(var.name)
 
     def train(self, args):
         """Train cyclegan"""
         self.lr = tf.placeholder(tf.float32, None, name='learning_rate')
-        self.d_optim = tf.train.AdamOptimizer(self.lr, beta1=args.beta1) \
-            .minimize(self.d_loss, var_list=self.d_vars)
-        self.g_optim = tf.train.AdamOptimizer(self.lr, beta1=args.beta1) \
-            .minimize(self.g_loss, var_list=self.g_vars)
+        # self.d_optim = tf.train.AdamOptimizer(self.lr, beta1=args.beta1) \
+        #     .minimize(self.d_loss, var_list=self.d_vars)
+        # self.g_optim = tf.train.AdamOptimizer(self.lr, beta1=args.beta1) \
+        #     .minimize(self.g_loss, var_list=self.g_vars)
+
+        self.dA_optim = tf.train.AdamOptimizer(self.lr, beta1=args.beta1) \
+            .minimize(self.da_loss, var_list=self.dA_vars)
+        self.dB_optim = tf.train.AdamOptimizer(self.lr, beta1=args.beta1) \
+            .minimize(self.db_loss, var_list=self.dB_vars)
+
+        self.gA2B_optim = tf.train.AdamOptimizer(self.lr, beta1=args.beta1) \
+            .minimize(self.g_loss_a2b, var_list=self.gA2B_vars)
+        self.gB2A_optim = tf.train.AdamOptimizer(self.lr, beta1=args.beta1) \
+            .minimize(self.g_loss_b2a, var_list=self.gB2A_vars)
 
         init_op = tf.global_variables_initializer()
         self.sess.run(init_op)
@@ -168,8 +191,8 @@ class cyclegan(object):
                 # batch_masks = np.array(batch_masks).astype(np.float32)
 
                 # Update G network and record fake outputs
-                fake_A, fake_B, _, summary_str = self.sess.run(
-                    [self.fake_A, self.fake_B, self.g_optim, self.g_sum],
+                fake_A, fake_B, _, _, summary_str = self.sess.run(
+                    [self.fake_A, self.fake_B, self.gA2B_optim, self.gB2A_optim, self.g_sum],
                     feed_dict={self.real_data: batch_images,
                                # self.mask_A: batch_masks,
                                self.lr: lr})
@@ -177,8 +200,8 @@ class cyclegan(object):
                 [fake_A, fake_B] = self.pool([fake_A, fake_B])
 
                 # Update D network
-                _, summary_str = self.sess.run(
-                    [self.d_optim, self.d_sum],
+                _, _, summary_str = self.sess.run(
+                    [self.dA_optim, self.dB_optim, self.d_sum],
                     feed_dict={self.real_data: batch_images,
                                # self.mask_A: batch_masks,
                                self.fake_A_sample: fake_A,

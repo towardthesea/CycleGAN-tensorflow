@@ -145,7 +145,7 @@ def abs_criterion(in_, target):
 
 
 def mae_criterion(in_, target):
-    return tf.reduce_mean((in_-target)**2)
+    return tf.reduce_mean(tf.square(in_-target))
 
 
 def sce_criterion(logits, labels):
