@@ -106,7 +106,7 @@ def generator_resnet(image, options, reuse=False, name="generator"):
             y = instance_norm(conv2d(y, dim, ks, s, padding='VALID', name=name+'_c1'), name+'_bn1')
             y = tf.pad(tf.nn.relu(y), [[0, 0], [p, p], [p, p], [0, 0]], "REFLECT")
             y = instance_norm(conv2d(y, dim, ks, s, padding='VALID', name=name+'_c2'), name+'_bn2')
-            return y + x
+            return tf.nn.relu(y + x)
 
         # Justin Johnson's model from https://github.com/jcjohnson/fast-neural-style/
         # The network with 9 blocks consists of: c7s1-32, d64, d128, R128, R128, R128,
@@ -134,8 +134,11 @@ def generator_resnet(image, options, reuse=False, name="generator"):
         d1 = tf.nn.relu(instance_norm(d1, 'g_d1_bn'))
         d2 = deconv2d(d1, options.gf_dim, 3, 2, name='g_d2_dc')
         d2 = tf.nn.relu(instance_norm(d2, 'g_d2_bn'))
-        d2 = tf.pad(d2, [[0, 0], [3, 3], [3, 3], [0, 0]], "REFLECT")
-        pred = tf.nn.tanh(conv2d(d2, options.output_c_dim, 7, 1, padding='VALID', name='g_pred_c'))
+        if options.nb_layers == 6:
+            d2 = tf.pad(d2, [[0, 0], [3, 3], [3, 3], [0, 0]], "REFLECT")
+            pred = tf.nn.tanh(conv2d(d2, options.output_c_dim, 7, 1, padding='VALID', name='g_pred_c'))
+        else:
+            pred = tf.nn.tanh(conv2d(d2, options.output_c_dim, 7, 1, padding='SAME', name='g_pred_c'))
 
         return pred
 
