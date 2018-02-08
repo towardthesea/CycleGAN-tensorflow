@@ -168,8 +168,8 @@ class cyclegan(object):
                 print(" [!] Load failed...")
 
         for epoch in range(args.epoch):
-            dataA = sorted(glob('./datasets/{}/*.*'.format(self.dataset_dir + '/trainA')))
-            dataB = sorted(glob('./datasets/{}/*.*'.format(self.dataset_dir + '/trainB')))
+            dataA = sorted(glob('./datasets/{}/*.*'.format(self.dataset_dir + args.trainA)))
+            dataB = sorted(glob('./datasets/{}/*.*'.format(self.dataset_dir + args.trainB)))
             # maskA = sorted(glob('./datasets/{}/*.*'.format(self.dataset_dir + '/trainA_mask')))
             # combined = list(zip(dataA, maskA))
             # np.random.shuffle(combined)
