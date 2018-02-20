@@ -80,5 +80,4 @@ cd $KSL/keras_model/prepocessing
 python preprocess_kinStrLearn_data.py --dataset $DATASET \
                                        --datapath $DATADUMP_PATH \
                                        --img_type syn \
-                                       --samples $SAMPLES
 
